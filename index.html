@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A practical introduction to orchestrating repository work with Claude, Codex, MCP, and objective verification.">
+  <title>Claude + Codex — a practical MCP orchestration pattern</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231d4ed8'/%3E%3Cpath d='M17 22h18M17 32h30M29 42h18' stroke='white' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="shell header-inner">
+      <a class="wordmark" href="#top" aria-label="Claude and Codex orchestration, back to top">
+        <span class="mark" aria-hidden="true">C↔C</span>
+        <span>Orchestration notes</span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href="#loop">The loop</a>
+        <a href="#setup">Setup</a>
+        <a href="#operations">Operations</a>
+        <a href="#safety">Safety</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <div class="shell hero-grid">
+        <div>
+          <p class="eyebrow">Claude → MCP → Codex</p>
+          <h1 id="hero-title">One agent plans.<br>One agent executes.<br><span>Evidence decides.</span></h1>
+          <p class="lede">A practical pattern for giving repository work to Codex without giving up scope control, review, or safety. Claude turns intent into a contract; Codex works in the checkout; tests and git keep both honest.</p>
+          <div class="hero-actions">
+            <a class="button primary" href="#loop">Follow the operating loop</a>
+            <a class="button secondary" href="#setup">See the connection</a>
+          </div>
+          <p class="freshness">Validated with Codex CLI 0.147.0 · 12 August 2026</p>
+        </div>
+
+        <aside class="terminal-card" aria-label="The orchestration stack at a glance">
+          <div class="terminal-bar" aria-hidden="true"><i></i><i></i><i></i></div>
+          <div class="stack">
+            <div class="stack-row"><span class="stack-id">01</span><div><b>User</b><small>decisions &amp; authority</small></div></div>
+            <div class="connector" aria-hidden="true"></div>
+            <div class="stack-row accent"><span class="stack-id">02</span><div><b>Claude</b><small>intent &amp; review</small></div></div>
+            <div class="connector labeled" aria-hidden="true"><span>stdio MCP</span></div>
+            <div class="stack-row warm"><span class="stack-id">03</span><div><b>Codex</b><small>code &amp; verification</small></div></div>
+            <div class="connector" aria-hidden="true"></div>
+            <div class="stack-row"><span class="stack-id">04</span><div><b>Repository</b><small>git · tests · runtime</small></div></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section intro" aria-labelledby="what-title">
+      <div class="shell narrow">
+        <p class="section-label">The pattern</p>
+        <h2 id="what-title">A planner and a repository executor, joined over stdio</h2>
+        <p class="section-lede">Claude is the control plane: it clarifies the request, bounds the work, and judges the result. Codex is the execution plane: it inspects the real repository, makes the change, and runs the checks. Codex’s local MCP server carries a work order in and a result with a thread ID back out.</p>
+        <div class="callout principle">
+          <span class="callout-kicker">Core principle</span>
+          <p>Share a contract and observable artifacts—not hidden reasoning or assumed context.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section tinted" aria-labelledby="roles-title">
+      <div class="shell">
+        <div class="section-heading">
+          <div><p class="section-label">Responsibility</p><h2 id="roles-title">Four owners, clean boundaries</h2></div>
+          <p>Each participant owns a different kind of truth. That separation makes review concrete and escalation predictable.</p>
+        </div>
+        <div class="role-grid">
+          <article class="role-card blue">
+            <span class="role-number">01</span>
+            <h3>Claude owns intent</h3>
+            <p>Scope, priorities, acceptance criteria, work orders, evidence review, and concise delta feedback.</p>
+          </article>
+          <article class="role-card amber">
+            <span class="role-number">02</span>
+            <h3>Codex owns execution</h3>
+            <p>Repository inspection, implementation choices, edits, focused checks, diagnosis, and self-review.</p>
+          </article>
+          <article class="role-card green">
+            <span class="role-number">03</span>
+            <h3>The user owns decisions</h3>
+            <p>Scope changes, destructive actions, new dependencies, external writes, and unresolved tradeoffs.</p>
+          </article>
+          <article class="role-card slate">
+            <span class="role-number">04</span>
+            <h3>Artifacts own the facts</h3>
+            <p>The working tree, git diff, tests, linters, and runtime checks outrank confident prose from either agent.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="writer-title">
+      <div class="shell split">
+        <div>
+          <p class="section-label">The write lease</p>
+          <h2 id="writer-title">One checkout. One writer. One coherent task.</h2>
+          <p>While Codex holds the write lease, Claude stays read-only. It may inspect and review, but it does not “help” by editing the same files. If implementation really must run in parallel, each writer gets a separate worktree and explicit ownership.</p>
+        </div>
+        <div class="conflict-card">
+          <p class="mini-title">What this rule removes</p>
+          <ul class="check-list">
+            <li>Colliding edits and generated-file churn</li>
+            <li>Reviews based on a stale working tree</li>
+            <li>Ambiguity about who introduced a change</li>
+            <li>Accidental loss of unrelated user work</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section loop-section" id="loop" aria-labelledby="loop-title">
+      <div class="shell">
+        <div class="section-heading light-heading">
+          <div><p class="section-label">End to end</p><h2 id="loop-title">The operating loop</h2></div>
+          <p>Every transition produces something inspectable: a decision, a contract, a diff, test output, or a targeted correction.</p>
+        </div>
+
+        <ol class="flow" aria-label="Six-step orchestration flow from clarification to close">
+          <li><span class="flow-num">1</span><div><h3>Clarify</h3><p>Resolve only ambiguities that materially change the result.</p></div></li>
+          <li><span class="flow-num">2</span><div><h3>Work order</h3><p>Define objective, scope, constraints, acceptance, and authority.</p></div></li>
+          <li><span class="flow-num">3</span><div><h3>Codex session</h3><p>Inspect → implement → test → self-review → report.</p></div></li>
+          <li><span class="flow-num">4</span><div><h3>Evidence review</h3><p>Map the actual diff and checks to every criterion.</p></div></li>
+          <li class="branch"><span class="flow-num">5</span><div><h3>Delta feedback</h3><p>If a correctable gap remains, continue the same thread with exact evidence.</p></div></li>
+          <li class="finish"><span class="flow-num">6</span><div><h3>Close</h3><p>Hand off when the agreed definition of done is proven—or surface the decision still needed.</p></div></li>
+        </ol>
+
+        <div class="decision-row" aria-label="Review outcomes">
+          <div><span class="signal pass" aria-hidden="true"></span><b>Acceptable</b><small>close the task</small></div>
+          <div><span class="signal revise" aria-hidden="true"></span><b>Correctable gap</b><small>send delta feedback</small></div>
+          <div><span class="signal blocked" aria-hidden="true"></span><b>Authority gap</b><small>ask the user</small></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="setup" aria-labelledby="setup-title">
+      <div class="shell split setup-split">
+        <div>
+          <p class="section-label">Connection</p>
+          <h2 id="setup-title">Register one local MCP server</h2>
+          <p>The Claude host launches Codex as a local stdio server. Registration is user-scoped; no web service or shared secret sits between the agents.</p>
+          <div class="code-block" role="group" aria-label="MCP registration command">
+            <span class="code-label">shell</span>
+            <code>claude mcp add --scope user codex -- codex mcp-server</code>
+          </div>
+          <p class="note">The three-hour server timeout described below must also be configured. It is part of the working setup, not an optional performance tweak.</p>
+        </div>
+        <div class="tool-list" aria-label="Tools exposed by the Codex MCP server">
+          <article>
+            <div class="tool-name"><code>codex</code><span>start</span></div>
+            <p>Starts a bounded session with a prompt and overrides such as working directory, model, sandbox, approval policy, and reasoning configuration.</p>
+          </article>
+          <article>
+            <div class="tool-name"><code>codex-reply</code><span>continue</span></div>
+            <p>Continues the same task with a saved <code>threadId</code>. Use it for evidence-backed review feedback rather than restating the whole contract.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section operations" id="operations" aria-labelledby="operations-title">
+      <div class="shell">
+        <div class="section-heading">
+          <div><p class="section-label">Operational reality</p><h2 id="operations-title">Two facts that change the design</h2></div>
+          <p>These are easy to miss in a happy-path demo and essential in a workflow meant to survive real tasks.</p>
+        </div>
+
+        <div class="fact-grid">
+          <article class="fact-card">
+            <div class="fact-top"><span class="fact-index">01</span><span class="tag">Session lifetime</span></div>
+            <h3>MCP threads live in memory</h3>
+            <p>The MCP server keeps active threads in its in-memory <code>ThreadManager</code>. End the client session and the server process ends too. The rollout may still exist on disk, but <code>codex-reply</code> can no longer find that thread.</p>
+            <div class="fact-rule">
+              <b>Design consequence</b>
+              <p>Finish delegate → review → revise inside one client session. Save every thread ID explicitly.</p>
+            </div>
+            <div class="code-block compact" role="group" aria-label="Thread recovery command">
+              <span class="code-label">recovery</span>
+              <code>codex exec resume &lt;threadId&gt; "&lt;prompt&gt;"</code>
+            </div>
+            <p class="fine-print">Use recovery to restore context and reconcile state, then open a fresh MCP thread with a concise work order before resuming implementation.</p>
+          </article>
+
+          <article class="fact-card timeout-card">
+            <div class="fact-top"><span class="fact-index">02</span><span class="tag">Idle behavior</span></div>
+            <h3>The three-hour timeout is load-bearing</h3>
+            <p>The client aborts an idle stdio MCP call after 30 minutes. Codex emits <code>codex/event</code> notifications during a run, but those are not <code>notifications/progress</code> and do not reset the idle timer.</p>
+            <div class="timer-visual" aria-label="Timeout comparison: 30-minute default versus 3-hour configured limit">
+              <div><span>Default idle limit</span><b>30 min</b></div>
+              <div class="safe-timer"><span>Configured per server</span><b>3 hr</b></div>
+            </div>
+            <div class="fact-rule">
+              <b>Design consequence</b>
+              <p>Set the server’s <code>timeout</code> to <code>10800000</code> milliseconds so a legitimate long-running, high-reasoning turn is not cut off without a useful result.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section tinted" aria-labelledby="model-title">
+      <div class="shell split model-split">
+        <div>
+          <p class="section-label">Compute policy</p>
+          <h2 id="model-title">Start with Sol at high</h2>
+          <p>Use <code>gpt-5.6-sol</code> with <code>high</code> reasoning for normal feature and bug-fix work. Escalate to <code>xhigh</code> when the change crosses subsystems, the root cause remains unclear, correctness depends on subtle invariants, or migration, security, or compatibility risk is high.</p>
+        </div>
+        <div class="ultra-card">
+          <p class="mini-title">A useful distinction</p>
+          <p class="equation"><span>Ultra</span><b>≠</b><span>xhigh</span></p>
+          <p><strong>xhigh</strong> is reasoning effort for one run. <strong>Ultra</strong> is an orchestration mode that may divide independent work among subagents. Use it only when the work really splits safely—and never as a CLI synonym for <code>xhigh</code>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section safety-section" id="safety" aria-labelledby="safety-title">
+      <div class="shell">
+        <div class="section-heading">
+          <div><p class="section-label">Safety boundary</p><h2 id="safety-title">Fail safely; do not widen authority</h2></div>
+          <p>The default lets Codex modify the selected workspace while preventing it from turning a blocked action into broader access.</p>
+        </div>
+        <div class="safety-grid">
+          <div class="policy-card recommended">
+            <span class="policy-status">Use</span>
+            <code>workspace-write</code>
+            <code>approval-policy: never</code>
+            <p>Codex can implement inside the authorized checkout. Anything outside that boundary must stop cleanly.</p>
+          </div>
+          <div class="policy-card avoid">
+            <span class="policy-status">Never by convenience</span>
+            <code>danger-full-access</code>
+            <p>Do not bypass the sandbox to keep momentum. A pause is cheaper than an unbounded side effect.</p>
+          </div>
+          <div class="blocked-card">
+            <span class="blocked-word">BLOCKED</span>
+            <p>Report the attempted action, why it is needed, the narrowest permission that would unblock it, and a safe alternative if one exists.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section closing" aria-labelledby="close-title">
+      <div class="shell narrow">
+        <p class="section-label">The takeaway</p>
+        <h2 id="close-title">The contract is the interface. Evidence is the handoff.</h2>
+        <p>Good orchestration is not more agent chatter. It is a clear outcome, narrow authority, one accountable writer, and a review loop that closes against observable facts.</p>
+        <a class="text-link" href="#top">Return to the overview <span aria-hidden="true">↑</span></a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="shell footer-inner">
+      <p>Claude–Codex MCP orchestration pattern</p>
+      <p>Dependency-free · designed to work from disk</p>
+    </div>
+  </footer>
+</body>
+</html>
