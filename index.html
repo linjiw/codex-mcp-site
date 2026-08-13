@@ -156,7 +156,7 @@
           <p class="section-label">Connection</p>
           <h2 id="setup-title">Register one local MCP server</h2>
           <p>The Claude host launches Codex as a local stdio server. Registration is user-scoped; no web service or shared secret sits between the agents.</p>
-          <div class="code-block" role="group" aria-label="MCP registration command">
+          <div class="code-block" role="group" aria-label="MCP registration command" tabindex="0">
             <span class="code-label">shell</span>
             <code>claude mcp add --scope user codex -- codex mcp-server</code>
           </div>
@@ -191,7 +191,7 @@
               <b>Design consequence</b>
               <p>Finish delegate → review → revise inside one client session. Save every thread ID explicitly.</p>
             </div>
-            <div class="code-block compact" role="group" aria-label="Thread recovery command">
+            <div class="code-block compact" role="group" aria-label="Thread recovery command" tabindex="0">
               <span class="code-label">recovery</span>
               <code>codex exec resume &lt;threadId&gt; "&lt;prompt&gt;"</code>
             </div>
