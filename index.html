@@ -4,7 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="A practical introduction to orchestrating repository work with Claude, Codex, MCP, and objective verification.">
+  <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0d1420" media="(prefers-color-scheme: dark)">
+  <meta property="og:title" content="Claude + Codex — a practical MCP orchestration pattern">
+  <meta property="og:description" content="A practical introduction to orchestrating repository work with Claude, Codex, MCP, and objective verification.">
+  <meta property="og:url" content="https://linjiw.github.io/codex-mcp-site/">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Claude + Codex — a practical MCP orchestration pattern">
+  <meta name="twitter:description" content="A practical introduction to orchestrating repository work with Claude, Codex, MCP, and objective verification.">
   <title>Claude + Codex — a practical MCP orchestration pattern</title>
+  <link rel="canonical" href="https://linjiw.github.io/codex-mcp-site/">
   <link rel="icon" href="data:image/svg+xml,%3Csvg viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231d4ed8'/%3E%3Cpath d='M17 22h18M17 32h30M29 42h18' stroke='white' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -123,16 +133,16 @@
           <p>Every transition produces something inspectable: a decision, a contract, a diff, test output, or a targeted correction.</p>
         </div>
 
-        <ol class="flow" aria-label="Six-step orchestration flow from clarification to close">
-          <li><span class="flow-num">1</span><div><h3>Clarify</h3><p>Resolve only ambiguities that materially change the result.</p></div></li>
-          <li><span class="flow-num">2</span><div><h3>Work order</h3><p>Define objective, scope, constraints, acceptance, and authority.</p></div></li>
-          <li><span class="flow-num">3</span><div><h3>Codex session</h3><p>Inspect → implement → test → self-review → report.</p></div></li>
-          <li><span class="flow-num">4</span><div><h3>Evidence review</h3><p>Map the actual diff and checks to every criterion.</p></div></li>
-          <li class="branch"><span class="flow-num">5</span><div><h3>Delta feedback</h3><p>If a correctable gap remains, continue the same thread with exact evidence.</p></div></li>
-          <li class="finish"><span class="flow-num">6</span><div><h3>Close</h3><p>Hand off when the agreed definition of done is proven—or surface the decision still needed.</p></div></li>
+        <ol class="flow" role="list" aria-label="Six-step orchestration flow from clarification to close">
+          <li role="listitem"><span class="flow-num">1</span><div><h3>Clarify</h3><p>Resolve only ambiguities that materially change the result.</p></div></li>
+          <li role="listitem"><span class="flow-num">2</span><div><h3>Work order</h3><p>Define objective, scope, constraints, acceptance, and authority.</p></div></li>
+          <li role="listitem"><span class="flow-num">3</span><div><h3>Codex session</h3><p>Inspect → implement → test → self-review → report.</p></div></li>
+          <li role="listitem"><span class="flow-num">4</span><div><h3>Evidence review</h3><p>Map the actual diff and checks to every criterion.</p></div></li>
+          <li class="branch" role="listitem"><span class="flow-num">5</span><div><h3>Delta feedback</h3><p>If a correctable gap remains, continue the same thread with exact evidence.</p></div></li>
+          <li class="finish" role="listitem"><span class="flow-num">6</span><div><h3>Close</h3><p>Hand off when the agreed definition of done is proven—or surface the decision still needed.</p></div></li>
         </ol>
 
-        <div class="decision-row" aria-label="Review outcomes">
+        <div class="decision-row" role="group" aria-label="Review outcomes">
           <div><span class="signal pass" aria-hidden="true"></span><b>Acceptable</b><small>close the task</small></div>
           <div><span class="signal revise" aria-hidden="true"></span><b>Correctable gap</b><small>send delta feedback</small></div>
           <div><span class="signal blocked" aria-hidden="true"></span><b>Authority gap</b><small>ask the user</small></div>
@@ -152,7 +162,7 @@
           </div>
           <p class="note">The three-hour server timeout described below must also be configured. It is part of the working setup, not an optional performance tweak.</p>
         </div>
-        <div class="tool-list" aria-label="Tools exposed by the Codex MCP server">
+        <div class="tool-list" role="group" aria-label="Tools exposed by the Codex MCP server">
           <article>
             <div class="tool-name"><code>codex</code><span>start</span></div>
             <p>Starts a bounded session with a prompt and overrides such as working directory, model, sandbox, approval policy, and reasoning configuration.</p>
@@ -192,7 +202,7 @@
             <div class="fact-top"><span class="fact-index">02</span><span class="tag">Idle behavior</span></div>
             <h3>The three-hour timeout is load-bearing</h3>
             <p>The client aborts an idle stdio MCP call after 30 minutes. Codex emits <code>codex/event</code> notifications during a run, but those are not <code>notifications/progress</code> and do not reset the idle timer.</p>
-            <div class="timer-visual" aria-label="Timeout comparison: 30-minute default versus 3-hour configured limit">
+            <div class="timer-visual" role="group" aria-label="Timeout comparison: 30-minute default versus 3-hour configured limit">
               <div><span>Default idle limit</span><b>30 min</b></div>
               <div class="safe-timer"><span>Configured per server</span><b>3 hr</b></div>
             </div>
